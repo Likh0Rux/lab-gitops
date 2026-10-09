@@ -1,0 +1,22 @@
+crds:
+enabled: true
+keep: true
+#controller primario
+resources:
+requests: { cpu: 10m, memory: 48Mi }
+limits: { memory: 128Mi }
+
+webhook:
+resources:
+requests: { cpu: 10m, memory: 24Mi }
+limits: { memory: 64Mi }
+
+cainjector:
+resources:
+requests: { cpu: 10m, memory: 48Mi }
+limits: { memory: 128Mi }
+
+startupapicheck: #verifica l'API
+resources:
+requests: { cpu: 10m, memory: 24Mi }
+limits: { memory: 64Mi }
