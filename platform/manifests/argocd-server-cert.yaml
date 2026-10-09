@@ -1,18 +1,21 @@
+# Certificato per ArgoCD firmato dalla CA del lab.
+# argocd-server usa automaticamente il secret "argocd-server-tls" se esiste,
+# quindi con il passthrough di Traefik il browser vede questo certificato (niente più avvisi).
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-name: argocd-server-tls
-namespace: argocd
+  name: argocd-server-tls
+  namespace: argocd
 spec:
-secretName: argocd-server-tls
-dnsNames:
-- argocd.local
-duration: 2160h 
-renewBefore: 360h 
-privateKey:
-algorithm: ECDSA
-size: 256
-issuerRef:
-name: lab-ca
-kind: ClusterIssuer
-group: cert-manager.io
+  secretName: argocd-server-tls
+  dnsNames:
+    - argocd.local
+  duration: 2160h                  # 90 giorni
+  renewBefore: 360h                # rinnovo automatico 15 giorni prima
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: lab-ca
+    kind: ClusterIssuer
+    group: cert-manager.io

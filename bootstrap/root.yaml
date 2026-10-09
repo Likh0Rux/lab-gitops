@@ -1,18 +1,20 @@
+# Root Application: applicata a mano UNA sola volta.
+# Legge la cartella apps/ e crea tutte le Application figlie (pattern app-of-apps).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-name: root
-namespace: argocd
+  name: root
+  namespace: argocd                       # le Application vivono nel namespace di ArgoCD
 spec:
-project: default
-source:
-repoURL: https://github.com/Likh0Rux/lab-gitops.git
-targetRevision: main
-path: apps
-destination:
-server: https://kubernetes.default.svc
-namespace: argocd
-syncPolicy:
-automated:
-prune: true # file cancellato da Git = risorsa rimossa
-selfHeal: true
+  project: default
+  source:
+    repoURL: https://github.com/Likh0Rux/lab-gitops.git
+    targetRevision: main                  # branch da seguire
+    path: apps                            # ogni file qui dentro = una Application figlia
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true                         # file cancellato da Git = risorsa rimossa
+      selfHeal: true                      # modifica manuale = ripristino dello stato di Git

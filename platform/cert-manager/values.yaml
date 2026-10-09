@@ -1,22 +1,23 @@
 crds:
-enabled: true
-keep: true
-#controller primario
-resources:
-requests: { cpu: 10m, memory: 48Mi }
-limits: { memory: 128Mi }
+  enabled: true                 # il chart installa e aggiorna le sue CRD
+  keep: true                    # se disinstallo il chart le CRD restano (non perdo i Certificate)
 
-webhook:
+# controller principale
 resources:
-requests: { cpu: 10m, memory: 24Mi }
-limits: { memory: 64Mi }
+  requests: { cpu: 10m, memory: 48Mi }
+  limits:   { memory: 128Mi }
 
-cainjector:
-resources:
-requests: { cpu: 10m, memory: 48Mi }
-limits: { memory: 128Mi }
+webhook:                        # valida le risorse cert-manager in ingresso
+  resources:
+    requests: { cpu: 10m, memory: 24Mi }
+    limits:   { memory: 64Mi }
 
-startupapicheck: #verifica l'API
-resources:
-requests: { cpu: 10m, memory: 24Mi }
-limits: { memory: 64Mi }
+cainjector:                     # inietta i CA bundle nei webhook/CRD
+  resources:
+    requests: { cpu: 10m, memory: 48Mi }
+    limits:   { memory: 128Mi }
+
+startupapicheck:                # job post-install che verifica l'API
+  resources:
+    requests: { cpu: 10m, memory: 24Mi }
+    limits:   { memory: 64Mi }

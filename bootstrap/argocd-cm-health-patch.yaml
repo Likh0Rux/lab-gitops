@@ -1,10 +1,13 @@
+# Ripristina il calcolo della health per le risorse Application (disattivato da ArgoCD 1.8).
+# Senza questa patch le sync-wave tra Application non aspettano che la figlia sia pronta.
+# Applicazione: kubectl -n argocd patch cm argocd-cm --type merge --patch-file <questo file>
 data:
-resource.customizations.health.argoproj.io_Application: |
-hs = {}
-hs.status = "Progressing"
-hs.message = ""
-if obj.status ~= nil and obj.status.health ~= nil then
-hs.status = obj.status.health.status
-if obj.status.health.message ~= nil then hs.message = obj.status.health.message end
-end
-return hs
+  resource.customizations.health.argoproj.io_Application: |
+    hs = {}
+    hs.status = "Progressing"
+    hs.message = ""
+    if obj.status ~= nil and obj.status.health ~= nil then
+      hs.status = obj.status.health.status
+      if obj.status.health.message ~= nil then hs.message = obj.status.health.message end
+    end
+    return hs
