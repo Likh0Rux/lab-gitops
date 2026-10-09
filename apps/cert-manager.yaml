@@ -4,21 +4,21 @@ metadata:
   name: cert-manager
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-3"         # prima di tutto: gli altri vogliono certificati
+    argocd.argoproj.io/sync-wave: "-3"        
   finalizers:
     - resources-finalizer.argocd.argoproj.io   # eliminando l'Application si eliminano anche le risorse
 spec:
   project: default
   sources:
-    - repoURL: https://charts.jetstack.io        # sorgente 1: chart ufficiale
+    - repoURL: https://charts.jetstack.io       
       chart: cert-manager
-      targetRevision: v1.21.2                    # versione pinnata (verificata con helm search)
+      targetRevision: v1.21.2                   
       helm:
         valueFiles:
           - $values/platform/cert-manager/values.yaml
-    - repoURL: https://github.com/Likh0Rux/lab-gitops.git   # sorgente 2: i nostri values
+    - repoURL: https://github.com/Likh0Rux/lab-gitops.git  
       targetRevision: main
-      ref: values                                # rende il repo referenziabile come $values
+      ref: values                               
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
@@ -28,4 +28,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true                     # CRD grandi: niente limite dei 262144 byte
+      - ServerSideApply=true                   
