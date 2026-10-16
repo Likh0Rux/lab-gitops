@@ -1,0 +1,8 @@
+# RBAC di ArgoCD basato sui gruppi LDAP che arrivano nel token di Dex.
+# Applicazione: kubectl -n argocd patch cm argocd-rbac-cm --type merge --patch-file <questo file>
+data:
+  policy.default: ""                 # deny by default: autenticato ma senza gruppo previsto = non vede nulla
+  scopes: "[groups]"                 # il claim del token da usare per le regole "g,"
+  policy.csv: |
+    g, platform-admin, role:admin
+    g, focus-tutor, role:readonly

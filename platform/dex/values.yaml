@@ -1,0 +1,70 @@
+# I secret (password di bind e client secret) arrivano dal Secret "dex-secrets",
+# creato a mano con kubectl e mai salvato nel repo.
+envFrom:
+  - secretRef:
+      name: dex-secrets          # LDAP_BIND_PW, ARGOCD_CLIENT_SECRET, FOCUS_CLIENT_SECRET
+
+config:
+  issuer: https://dex.local      # deve essere identico da browser e da pod (CoreDNS rewrite)
+  storage:
+    type: kubernetes             # stato e chiavi di firma salvati come CRD, niente DB
+    config:
+      inCluster: true
+  oauth2:
+    skipApprovalScreen: true
+  connectors:
+    - type: ldap
+      id: lldap
+      name: LLDAP
+      config:
+        host: lldap.identity.svc.cluster.local:3890
+        insecureNoSSL: true                      # LDAP in chiaro dentro il cluster (finding)
+        bindDN: uid=dex-bind,ou=people,dc=lab,dc=local
+        bindPW: $LDAP_BIND_PW                    # espansa da variabile d'ambiente
+        usernamePrompt: Username
+        userSearch:
+          baseDN: ou=people,dc=lab,dc=local
+          filter: "(objectClass=person)"
+          username: uid
+          idAttr: uid
+          emailAttr: mail
+          nameAttr: displayName
+          preferredUsernameAttr: uid
+        groupSearch:                             # i gruppi finiscono nel claim "groups" del token
+          baseDN: ou=groups,dc=lab,dc=local
+          filter: "(objectClass=groupOfUniqueNames)"
+          userMatchers:
+            - userAttr: DN
+              groupAttr: member
+          nameAttr: cn
+  staticClients:
+    - id: argocd
+      name: Argo CD
+      secretEnv: ARGOCD_CLIENT_SECRET
+      redirectURIs:
+        - https://argocd.local/auth/callback
+    - id: focus
+      name: Focus
+      secretEnv: FOCUS_CLIENT_SECRET
+      redirectURIs:
+        - https://focus.local/oauth2/callback
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: lab-ca
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  hosts:
+    - host: dex.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: dex-tls
+      hosts: [dex.local]
+
+resources:
+  requests: { cpu: 10m, memory: 24Mi }
+  limits:   { memory: 64Mi }

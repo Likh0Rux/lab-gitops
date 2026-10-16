@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lldap
+  namespace: identity
+spec:
+  selector:
+    app.kubernetes.io/name: lldap
+  ports:
+    - name: ldap
+      port: 3890                 # usata solo da Dex, dentro il cluster
+      targetPort: ldap
+    - name: http
+      port: 17170                # web UI, esposta via Ingress
+      targetPort: http

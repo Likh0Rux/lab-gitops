@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lldap-data
+  namespace: identity
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path       # per ora local-path: Longhorn a 2 nodi arriva nella fase Longhorn
+  resources:
+    requests:
+      storage: 1Gi                   # SQLite di LLDAP: bastano pochi MB

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lldap
+  namespace: identity
+  labels:
+    app.kubernetes.io/name: lldap
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate                     # volume RWO: il vecchio pod deve liberarlo prima del nuovo
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: lldap
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: lldap
+    spec:
+      automountServiceAccountToken: false   # LLDAP non parla con l'API server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000                # utente "lldap" dell'immagine rootless
+        runAsGroup: 1000
+        fsGroup: 1000                  # il volume diventa scrivibile per il gruppo 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: lldap
+          image: lldap/lldap:v0.6.3-alpine-rootless
+          env:
+            - name: LLDAP_LDAP_BASE_DN
+              value: dc=lab,dc=local
+            - name: TZ
+              value: Europe/Rome
+          envFrom:
+            - secretRef:
+                name: lldap-secrets    # LLDAP_JWT_SECRET, LLDAP_KEY_SEED, LLDAP_LDAP_USER_PASS
+          ports:
+            - name: ldap
+              containerPort: 3890
+            - name: http
+              containerPort: 17170
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          readinessProbe:
+            tcpSocket:
+              port: ldap
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits:   { memory: 64Mi }
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: lldap-data

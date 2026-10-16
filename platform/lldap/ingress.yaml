@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lldap
+  namespace: identity
+  annotations:
+    cert-manager.io/cluster-issuer: lab-ca                       # certificato automatico dalla CA del lab
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure  # solo HTTPS (porta 443 della VM)
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [lldap.local]
+      secretName: lldap-tls      # creato da cert-manager
+  rules:
+    - host: lldap.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lldap
+                port:
+                  name: http

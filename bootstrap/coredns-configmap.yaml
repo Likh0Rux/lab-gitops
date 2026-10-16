@@ -1,0 +1,39 @@
+# CoreDNS di kind con le regole "rewrite" per i nomi .local del lab.
+# Dentro il cluster ogni nome .local diventa il Service di Traefik, che espone la 443:
+# il pod chiama https://dex.local come il browser e Traefik smista per hostname.
+# NB: regole "exact", una per nome. Una regex su ".local" catturerebbe anche
+#     "*.svc.cluster.local" e romperebbe tutto il DNS del cluster.
+# Applicazione: kubectl apply -f <questo file>   (CoreDNS ricarica da solo grazie a "reload")
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health {
+           lameduck 5s
+        }
+        ready
+        rewrite name exact dex.local traefik.traefik-system.svc.cluster.local answer auto
+        rewrite name exact lldap.local traefik.traefik-system.svc.cluster.local answer auto
+        rewrite name exact argocd.local traefik.traefik-system.svc.cluster.local answer auto
+        rewrite name exact focus.local traefik.traefik-system.svc.cluster.local answer auto
+        rewrite name exact grafana.local traefik.traefik-system.svc.cluster.local answer auto
+        rewrite name exact longhorn.local traefik.traefik-system.svc.cluster.local answer auto
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+           pods insecure
+           fallthrough in-addr.arpa ip6.arpa
+           ttl 30
+        }
+        prometheus :9153
+        forward . /etc/resolv.conf {
+           max_concurrent 1000
+        }
+        cache 30
+        loop
+        reload
+        loadbalance
+    }

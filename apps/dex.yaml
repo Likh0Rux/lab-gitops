@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dex
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"            # dopo LLDAP (-1), prima di Focus (1)
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.dexidp.io          # chart ufficiale di Dex
+      chart: dex
+      targetRevision: 0.26.0                     # Dex 2.46.0
+      helm:
+        valueFiles:
+          - $values/platform/dex/values.yaml
+    - repoURL: https://github.com/Likh0Rux/lab-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: identity
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
