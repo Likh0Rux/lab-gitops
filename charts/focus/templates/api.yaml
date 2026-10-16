@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: focus-api
+  labels: {{- include "focus.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: focus-api }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: focus-api }
+      {{- if .Values.metrics.scrape }}
+      annotations:                                # il monitoring trova da solo l'endpoint /metrics
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: /metrics
+      {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: api
+          image: {{ .Values.api.image }}
+          imagePullPolicy: {{ .Values.api.pullPolicy }}
+          ports: [{ name: http, containerPort: 8080 }]
+          env:
+            - { name: POSTGRES_HOST, value: focus-db }
+            - { name: VALKEY_HOST, value: focus-valkey }
+            - { name: ATTACHMENTS_DIR, value: /data/attachments }
+            - { name: MAX_UPLOAD_MB, value: {{ .Values.attachments.maxUploadMB | quote }} }
+          envFrom:
+            - secretRef: { name: {{ .Values.postgres.secretName }} }    # POSTGRES_USER/PASSWORD/DB
+            - secretRef: { name: {{ .Values.valkey.secretName }} }      # VALKEY_PASSWORD
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }      # pronto solo se DB e cache rispondono
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          securityContext:
+            {{- include "focus.containerSecurity" . | nindent 12 }}
+            runAsUser: 10001
+          resources:
+            requests: { cpu: 10m, memory: 64Mi }
+            limits:   { memory: 160Mi }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+            - { name: attachments, mountPath: /data/attachments }
+      securityContext:
+        fsGroup: 10001                            # il volume degli appunti diventa scrivibile per l'utente dell'API
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: attachments
+          {{- if .Values.attachments.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: focus-attachments          # volume Longhorn (fase Longhorn)
+          {{- else }}
+          emptyDir:
+            sizeLimit: {{ .Values.attachments.persistence.size }}   # provvisorio: si svuota al restart del pod
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: focus-api
+  labels: {{- include "focus.labels" . | nindent 4 }}
+spec:
+  selector: { app.kubernetes.io/name: focus-api }
+  ports: [{ name: http, port: 8080, targetPort: http }]

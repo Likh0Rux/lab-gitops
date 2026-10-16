@@ -1,0 +1,7 @@
+fastapi==0.143.0
+uvicorn==0.54.0
+sqlalchemy==2.1.4
+psycopg[binary]==3.3.6
+redis==8.1.0
+prometheus-client==0.26.0
+python-multipart==0.0.32

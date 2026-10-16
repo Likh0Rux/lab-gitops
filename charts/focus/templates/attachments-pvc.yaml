@@ -1,0 +1,15 @@
+{{- if .Values.attachments.persistence.enabled }}
+# Volume degli appunti. ReadWriteMany: con più repliche dell'API tutte vedono gli stessi file.
+# Su Longhorn un volume RWX viene esportato in NFS da un pod "share-manager".
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: focus-attachments
+  labels: {{- include "focus.labels" . | nindent 4 }}
+spec:
+  accessModes: [{{ .Values.attachments.persistence.accessMode }}]
+  storageClassName: {{ .Values.attachments.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.attachments.persistence.size }}
+{{- end }}

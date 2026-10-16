@@ -1,0 +1,50 @@
+# Chi può parlare con chi dentro il namespace focus.
+# Fondamentale per l'API: si fida degli header X-Forwarded-* messi da oauth2-proxy,
+# quindi deve essere raggiungibile SOLO da oauth2-proxy (altrimenti gli header si falsificano).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oauth2-proxy-from-traefik
+  labels: {{- include "focus.labels" . | nindent 4 }}
+spec:
+  podSelector: { matchLabels: { app.kubernetes.io/name: focus-oauth2-proxy } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: traefik-system } }
+      ports: [{ port: 4180 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-from-oauth2-proxy
+  labels: {{- include "focus.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [focus-api, focus-frontend] }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app.kubernetes.io/name: focus-oauth2-proxy } }
+      ports: [{ port: 8080 }]
+    {{- with .Values.metrics.allowFromNamespace }}
+    - from:                                       # il monitoring può leggere /metrics (non passa da oauth2-proxy)
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: {{ . }} } }
+      ports: [{ port: 8080 }]
+    {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: data-from-api
+  labels: {{- include "focus.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [focus-db, focus-valkey] }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app.kubernetes.io/name: focus-api } }
+      ports: [{ port: 5432 }, { port: 6379 }]

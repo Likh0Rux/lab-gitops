@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: focus
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"            # dopo Dex
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Likh0Rux/lab-gitops.git
+    targetRevision: main
+    path: charts/focus                           # il nostro chart Helm
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: focus
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

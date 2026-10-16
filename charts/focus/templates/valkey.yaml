@@ -1,0 +1,53 @@
+# Valkey (fork open source di Redis) usato come CACHE: niente persistenza.
+# Se riparte si svuota, e i dati si ricostruiscono da Postgres.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: focus-valkey
+  labels: {{- include "focus.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: focus-valkey }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: focus-valkey }
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 999                 # utente "valkey" dell'immagine
+        runAsGroup: 999
+      containers:
+        - name: valkey
+          image: {{ .Values.valkey.image }}
+          args:
+            - --requirepass
+            - $(VALKEY_PASSWORD)                          # espansa da Kubernetes dalla variabile d'ambiente
+            - --maxmemory
+            - {{ .Values.valkey.maxmemory | quote }}
+            - --maxmemory-policy
+            - allkeys-lru                                 # quando è piena scarta le chiavi meno usate
+            - --save
+            - ""                                          # nessuno snapshot su disco
+            - --appendonly
+            - "no"
+          envFrom:
+            - secretRef: { name: {{ .Values.valkey.secretName }} }
+          ports: [{ name: valkey, containerPort: 6379 }]
+          readinessProbe:
+            tcpSocket: { port: valkey }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+          resources:
+            requests: { cpu: 5m, memory: 16Mi }
+            limits:   { memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: focus-valkey
+  labels: {{- include "focus.labels" . | nindent 4 }}
+spec:
+  selector: { app.kubernetes.io/name: focus-valkey }
+  ports: [{ name: valkey, port: 6379, targetPort: valkey }]

@@ -1,0 +1,48 @@
+host: focus.local                     # hostname pubblico (Ingress)
+
+oidc:
+  issuer: https://dex.local           # issuer di Dex
+  clientID: focus
+  secretName: focus-oauth2            # client-secret e cookie-secret (creato a mano)
+  allowedGroups:                      # chi non è in nessuno di questi gruppi riceve 403
+    - platform-admin
+    - focus-tutor
+    - focus-studenti
+
+frontend:
+  image: nginxinc/nginx-unprivileged:1.30-alpine
+
+api:
+  image: focus-api:0.3.0              # costruita sulla VM e caricata in kind (poi arriverà da GHCR con la CI)
+  pullPolicy: IfNotPresent
+
+oauth2Proxy:
+  image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.5
+
+postgres:
+  image: postgres:17-alpine
+  secretName: focus-db                # POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+  storageClass: local-path            # passerà a longhorn-r2 nella fase Longhorn
+  size: 1Gi
+
+attachments:                          # appunti caricati dai tutor
+  maxUploadMB: 10
+  persistence:
+    enabled: false                    # oggi: emptyDir (i file si perdono se il pod riparte)
+    # fase Longhorn: enabled: true -> PVC ReadWriteMany su Longhorn, condiviso tra più repliche dell'API
+    storageClass: longhorn-r2
+    accessMode: ReadWriteMany
+    size: 2Gi
+
+metrics:
+  scrape: true                        # annotation prometheus.io/* sul pod dell'API (per VictoriaMetrics/Prometheus)
+  allowFromNamespace: monitoring      # NetworkPolicy: solo questo namespace può leggere /metrics
+
+valkey:
+  image: valkey/valkey:9.1-alpine
+  secretName: focus-valkey            # VALKEY_PASSWORD
+  maxmemory: 32mb
+
+resources:                            # componenti leggeri (frontend, oauth2-proxy)
+  requests: { cpu: 5m, memory: 16Mi }
+  limits:   { memory: 64Mi }

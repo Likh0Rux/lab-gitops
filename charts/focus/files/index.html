@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus — la tua stanza dello spirito e del tempo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg-glow: rgba(255, 122, 69, 0.10);
+    --surface: #12151c;
+    --surface-2: #171b24;
+    --border: rgba(255,255,255,0.08);
+    --border-soft: rgba(255,255,255,0.05);
+    --text: #f1f3f6;
+    --text-muted: #868fa3;
+    --text-faint: #4b5165;
+
+    --ember-1: #ff8a4c;
+    --ember-2: #ff4d6d;
+    --cool-1: #38e8c6;
+    --cool-2: #4fa8ff;
+
+    --accent-1: var(--ember-1);
+    --accent-2: var(--ember-2);
+    --accent-glow: rgba(255, 122, 69, 0.35);
+
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    background:
+      radial-gradient(600px 400px at 50% 20%, var(--bg-glow), transparent 70%),
+      var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+    transition: background 0.6s ease;
+  }
+
+  body[data-mode="short"], body[data-mode="long"] {
+    --accent-1: var(--cool-1);
+    --accent-2: var(--cool-2);
+    --accent-glow: rgba(56, 232, 198, 0.30);
+  }
+
+  .app {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+  }
+
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .wordmark .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    transition: background 0.6s ease;
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  .settings-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, transform 0.2s;
+  }
+  .settings-btn:hover { color: var(--text); border-color: var(--border); transform: rotate(35deg); }
+  .settings-btn:focus-visible { outline: 2px solid var(--accent-1); outline-offset: 2px; }
+  .settings-btn svg { width: 18px; height: 18px; }
+
+  /* ---------- Header ---------- */
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: clamp(1.5rem, 5vw, 1.9rem);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  /* ---------- Mode tabs ---------- */
+  .tabs {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px;
+    margin-bottom: 2.5rem;
+    gap: 4px;
+  }
+
+  .tab {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s;
+    white-space: nowrap;
+  }
+
+  .tab:focus-visible { outline: 2px solid var(--accent-1); outline-offset: 2px; }
+
+  .tab[aria-selected="true"] {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  /* ---------- Ring ---------- */
+  .ring-wrap {
+    position: relative;
+    width: min(74vw, 280px);
+    height: min(74vw, 280px);
+    margin-bottom: 2.2rem;
+  }
+
+  .ring-glow {
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-glow), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+  }
+  .ring-wrap[data-running="true"] .ring-glow {
+    opacity: 1;
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.55; }
+    50% { transform: scale(1.06); opacity: 0.9; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ring-wrap[data-running="true"] .ring-glow { animation: none; opacity: 0.7; }
+  }
+
+  svg.ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+
+  .ring-track {
+    fill: none;
+    stroke: var(--surface-2);
+    stroke-width: 10;
+  }
+
+  .ring-progress {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke: url(#ringGradient);
+    transition: stroke-dashoffset 1s linear;
+  }
+
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .time {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.6rem, 12vw, 3.4rem);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .session-label {
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+    margin-top: 0.7rem;
+  }
+
+  .dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    transition: background 0.3s, transform 0.3s;
+  }
+
+  .dots span.done {
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  }
+
+  .dots span.active {
+    transform: scale(1.4);
+    background: var(--text);
+  }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  button.ctrl {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 0.75rem 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: transform 0.15s ease, border-color 0.2s, background 0.2s;
+  }
+
+  button.ctrl:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.18); }
+  button.ctrl:active { transform: translateY(0); }
+  button.ctrl:focus-visible { outline: 2px solid var(--accent-1); outline-offset: 2px; }
+
+  button.ctrl svg { width: 15px; height: 15px; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    border: none;
+    color: #14100c;
+    padding: 0.85rem 1.8rem;
+    box-shadow: 0 8px 24px -8px var(--accent-glow);
+  }
+
+  .btn-primary:hover { transform: translateY(-1px) scale(1.015); }
+
+  /* ---------- Settings panel ---------- */
+  .settings-panel {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 1.6rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.2rem 1.3rem;
+    display: none;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .settings-panel.open { display: flex; }
+
+  .settings-panel h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .field-row label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    padding: 0.3rem 0.4rem;
+  }
+
+  .stepper button {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .stepper button:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  .stepper button:focus-visible { outline: 2px solid var(--accent-1); outline-offset: 1px; }
+
+  .stepper output {
+    font-family: 'Space Grotesk', sans-serif;
+    font-variant-numeric: tabular-nums;
+    min-width: 2.2ch;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  footer {
+    margin-top: 2.2rem;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    text-align: center;
+  }
+
+  kbd {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    padding: 0.05rem 0.35rem;
+    font-size: 0.7rem;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap; border: 0;
+  }
+
+  /* ===== Focus: utente, materia, pannelli ===== */
+  .user-chip { display:flex; align-items:center; gap:.5rem; font-size:.82rem; color:var(--text-muted); }
+  .user-chip b { color:var(--text); font-weight:600; }
+  .role { padding:.1rem .5rem; border-radius:999px; border:1px solid var(--border); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; }
+  .role.admin { color:#ff8a4c; border-color:rgba(255,138,76,.4); }
+  .role.tutor { color:#38e8c6; border-color:rgba(56,232,198,.4); }
+  .logout { color:var(--text-faint); text-decoration:none; font-size:.78rem; }
+  .logout:hover { color:var(--text); }
+  .subject { display:flex; gap:.5rem; align-items:center; justify-content:center; margin:1.2rem 0 .4rem; }
+  .subject label { font-size:.8rem; color:var(--text-muted); }
+  .subject input { background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:.45rem .7rem; font:inherit; width:12rem; }
+  .saved { text-align:center; font-size:.78rem; color:var(--cool-1); min-height:1.1em; }
+  .panels { display:grid; gap:1rem; margin-top:1.4rem; }
+  .panel { background:var(--surface); border:1px solid var(--border-soft); border-radius:16px; padding:1rem 1.1rem; }
+  .panel h2 { font-family:'Space Grotesk',sans-serif; font-size:.95rem; margin:0 0 .7rem; display:flex; justify-content:space-between; align-items:center; }
+  .panel .muted { color:var(--text-muted); font-size:.82rem; }
+  .kpis { display:flex; gap:1.4rem; margin-bottom:.6rem; }
+  .kpi b { display:block; font-family:'Space Grotesk',sans-serif; font-size:1.5rem; }
+  .kpi span { font-size:.75rem; color:var(--text-muted); }
+  .rows { list-style:none; margin:0; padding:0; }
+  .rows li { display:flex; justify-content:space-between; padding:.35rem 0; border-top:1px solid var(--border-soft); font-size:.88rem; }
+  .rows li:first-child { border-top:0; }
+  .badge { font-size:.68rem; padding:.1rem .45rem; border-radius:6px; background:var(--surface-2); color:var(--text-muted); font-weight:500; }
+  .test-btn { background:none; border:1px dashed var(--border); color:var(--text-muted); border-radius:8px; padding:.3rem .6rem; font:inherit; font-size:.75rem; cursor:pointer; }
+  .test-btn:hover { color:var(--text); }
+  [hidden] { display: none !important; }
+  /* ===== Calendario e pianificazione ===== */
+  .weeknav { display:flex; gap:.3rem; align-items:center; }
+  .weeknav button { background:var(--surface-2); border:1px solid var(--border); color:var(--text-muted); border-radius:8px; width:28px; height:26px; cursor:pointer; }
+  .weeknav button:hover { color:var(--text); }
+  .weeknav span { font-size:.75rem; color:var(--text-muted); font-weight:400; min-width:7.5rem; text-align:center; }
+  .day { margin-top:.6rem; }
+  .day h3 { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin:0 0 .3rem; font-weight:600; }
+  .slot { display:flex; align-items:center; gap:.6rem; padding:.45rem .55rem; border:1px solid var(--border-soft); border-radius:10px; margin-bottom:.35rem; background:var(--surface-2); }
+  .slot .t { font-family:'Space Grotesk',sans-serif; font-size:.85rem; min-width:3rem; }
+  .slot .info { flex:1; font-size:.85rem; line-height:1.25; }
+  .slot .info small { display:block; color:var(--text-muted); font-size:.72rem; }
+  .slot.done { opacity:.6; }
+  .slot .ok { color:var(--cool-1); font-size:.8rem; }
+  .mini { background:none; border:1px solid var(--border); color:var(--text-muted); border-radius:7px; padding:.2rem .5rem; font:inherit; font-size:.72rem; cursor:pointer; }
+  .mini:hover { color:var(--text); border-color:rgba(255,255,255,.2); }
+  .mini.go { border:0; color:#14100c; background:linear-gradient(135deg,var(--ember-1),var(--ember-2)); font-weight:600; }
+  .plan { display:grid; gap:.55rem; }
+  .plan .row2 { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; }
+  .plan label { font-size:.72rem; color:var(--text-muted); display:block; margin-bottom:.2rem; }
+  .plan input, .plan select { width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:.4rem .55rem; font:inherit; font-size:.85rem; color-scheme:dark; }
+  .targets { display:flex; gap:1rem; font-size:.82rem; }
+  .targets label { display:flex; gap:.35rem; align-items:center; font-size:.82rem; color:var(--text); margin:0; }
+  .students { display:flex; flex-wrap:wrap; gap:.4rem; }
+  .students label { display:flex; gap:.3rem; align-items:center; background:var(--surface-2); border:1px solid var(--border-soft); border-radius:999px; padding:.2rem .6rem; font-size:.78rem; color:var(--text); margin:0; }
+  .plan .actions { display:flex; gap:.5rem; justify-content:flex-end; }
+  .plan .msg { font-size:.75rem; color:var(--cool-1); min-height:1em; }
+  .plan .msg.err { color:var(--ember-2); }
+  .files { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.3rem; }
+  .file { display:inline-flex; align-items:center; gap:.3rem; font-size:.72rem; background:var(--surface); border:1px solid var(--border-soft); border-radius:6px; padding:.12rem .45rem; }
+  .file a { color:var(--cool-2); text-decoration:none; }
+  .file a:hover { text-decoration:underline; }
+  .file button { background:none; border:0; color:var(--text-faint); cursor:pointer; font-size:.8rem; padding:0; }
+  .file button:hover { color:var(--ember-2); }
+  .upload { font-size:.72rem; color:var(--text-muted); cursor:pointer; border:1px dashed var(--border); border-radius:6px; padding:.12rem .45rem; }
+  .upload:hover { color:var(--text); }
+  .upload input { display:none; }
+  .slot { flex-wrap:wrap; }
+  .slot .files-row { flex-basis:100%; padding-left:3.6rem; }
+  .klass { font-size:.68rem; padding:.05rem .4rem; border-radius:5px; background:rgba(79,168,255,.12); color:var(--cool-2); }
+  select.lb { background:var(--surface-2); border:1px solid var(--border); color:var(--text-muted); border-radius:7px; font:inherit; font-size:.72rem; padding:.1rem .3rem; }
+</style>
+</head>
+<body data-mode="focus">
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop id="gradStop1" offset="0%" stop-color="#ff8a4c" />
+      <stop id="gradStop2" offset="100%" stop-color="#ff4d6d" />
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <div class="topbar">
+    <div class="wordmark"><span class="dot" aria-hidden="true"></span>focus</div>
+    <div class="user-chip" id="userChip">…</div>
+    <button class="settings-btn" id="settingsToggle" aria-expanded="false" aria-controls="settingsPanel" aria-label="Impostazioni durata">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <header>
+    <h1>Focus</h1>
+    <p>La tua stanza dello spirito e del tempo</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Modalità">
+    <button class="tab" role="tab" id="tabFocus" aria-selected="true" data-mode="focus">Focus</button>
+    <button class="tab" role="tab" id="tabShort" aria-selected="false" data-mode="short">Pausa breve</button>
+    <button class="tab" role="tab" id="tabLong" aria-selected="false" data-mode="long">Pausa lunga</button>
+  </div>
+
+  <div class="ring-wrap" id="ringWrap" data-running="false">
+    <div class="ring-glow" aria-hidden="true"></div>
+    <svg class="ring" viewBox="0 0 240 240" aria-hidden="true">
+      <circle class="ring-track" cx="120" cy="120" r="104"></circle>
+      <circle class="ring-progress" id="ringProgress" cx="120" cy="120" r="104"
+        stroke-dasharray="653.45" stroke-dashoffset="0"></circle>
+    </svg>
+    <div class="ring-center">
+      <div class="time" id="timeDisplay" aria-live="polite">25:00</div>
+      <div class="session-label" id="sessionLabel">Sessione 1 di 4</div>
+      <div class="dots" id="dots" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl" id="resetBtn" aria-label="Azzera timer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+      </svg>
+      Reset
+    </button>
+
+    <button class="ctrl btn-primary" id="startBtn">
+      <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+      <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+        <rect x="6" y="5" width="4" height="14"></rect><rect x="14" y="5" width="4" height="14"></rect>
+      </svg>
+      <span id="startLabel">Avvia</span>
+    </button>
+
+    <button class="ctrl" id="skipBtn" aria-label="Salta alla fase successiva">
+      Skip
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 4l10 8-10 8V4z"></path><path d="M19 5v14"></path>
+      </svg>
+    </button>
+  </div>
+
+  <div class="subject">
+    <label for="subjectInput">Materia</label>
+    <input id="subjectInput" maxlength="64" placeholder="es. Kubernetes" value="Kubernetes">
+    <button class="test-btn" id="testBtn" title="Registra subito un pomodoro da 1 minuto (per i test)">+1 prova</button>
+  </div>
+  <div class="saved" id="savedMsg"></div>
+
+  <div class="settings-panel" id="settingsPanel">
+    <h2>Durate (minuti)</h2>
+
+    <div class="field-row">
+      <label for="focusVal">Focus</label>
+      <div class="stepper">
+        <button type="button" data-setting="focus" data-delta="-1" aria-label="Diminuisci focus">−</button>
+        <output id="focusVal">25</output>
+        <button type="button" data-setting="focus" data-delta="1" aria-label="Aumenta focus">+</button>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <label for="shortVal">Pausa breve</label>
+      <div class="stepper">
+        <button type="button" data-setting="short" data-delta="-1" aria-label="Diminuisci pausa breve">−</button>
+        <output id="shortVal">5</output>
+        <button type="button" data-setting="short" data-delta="1" aria-label="Aumenta pausa breve">+</button>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <label for="longVal">Pausa lunga</label>
+      <div class="stepper">
+        <button type="button" data-setting="long" data-delta="-1" aria-label="Diminuisci pausa lunga">−</button>
+        <output id="longVal">15</output>
+        <button type="button" data-setting="long" data-delta="1" aria-label="Aumenta pausa lunga">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <section class="panel">
+      <h2><span id="calTitle">Il mio calendario</span>
+        <span class="weeknav"><button id="prevWeek" aria-label="Settimana precedente">‹</button><span id="weekLabel"></span><button id="nextWeek" aria-label="Settimana successiva">›</button></span>
+      </h2>
+      <div id="calendar"><p class="muted">Nessun pomodoro pianificato questa settimana</p></div>
+    </section>
+    <section class="panel">
+      <h2>La mia settimana <span class="badge" id="cacheBadge"></span></h2>
+      <div class="kpis">
+        <div class="kpi"><b id="kpiMin">0</b><span>minuti</span></div>
+        <div class="kpi"><b id="kpiPomo">0</b><span>pomodori</span></div>
+      </div>
+      <ul class="rows" id="bySubject"><li class="muted">Nessun pomodoro questa settimana</li></ul>
+    </section>
+    <section class="panel">
+      <h2>Classifica settimanale <select class="lb" id="lbSelect" aria-label="Classifica"><option value="">Generale</option></select></h2>
+      <ul class="rows" id="leaderboard"><li class="muted">Ancora vuota</li></ul>
+    </section>
+    <section class="panel" id="tutorPanel" hidden>
+      <h2>Vista tutor <span class="badge">solo tutor / admin</span></h2>
+      <ul class="rows" id="tutorRows"><li class="muted">Nessuno studente attivo</li></ul>
+    </section>
+    <section class="panel" id="planPanel" hidden>
+      <h2><span id="planTitle">Pianifica un pomodoro</span> <span class="badge">tutor</span></h2>
+      <form class="plan" id="planForm">
+        <div><label for="pSubject">Materia</label><input id="pSubject" required maxlength="64" placeholder="es. Kubernetes RBAC"></div>
+        <div class="row2">
+          <div><label for="pDate">Giorno</label><input id="pDate" type="date" required></div>
+          <div><label for="pTime">Ora</label><input id="pTime" type="time" required value="09:00"></div>
+        </div>
+        <div class="row2">
+          <div><label for="pMinutes">Durata (min)</label><input id="pMinutes" type="number" min="1" max="120" value="25" required></div>
+          <div><label for="pNote">Nota</label><input id="pNote" maxlength="200" placeholder="facoltativa"></div>
+        </div>
+        <div>
+          <label>Destinatari</label>
+          <div class="targets">
+            <label id="targetAllLabel"><input type="radio" name="target" value="all"> Tutti</label>
+            <label><input type="radio" name="target" value="class" checked> Una classe</label>
+            <label><input type="radio" name="target" value="students"> Studenti specifici</label>
+          </div>
+        </div>
+        <div id="classBox"><select id="pClass" class="lb" style="width:100%;padding:.4rem .55rem;font-size:.85rem"></select></div>
+        <div class="students" id="studentList" hidden></div>
+        <div class="msg" id="planMsg"></div>
+        <div class="actions">
+          <button type="button" class="mini" id="planCancel" hidden>Annulla modifica</button>
+          <button type="submit" class="mini go" id="planSubmit">Aggiungi al calendario</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <footer>
+    <kbd>Spazio</kbd> avvia/pausa &nbsp;·&nbsp; <kbd>R</kbd> reset &nbsp;·&nbsp; <kbd>S</kbd> skip
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const CIRC = 653.45; // 2 * PI * 104
+  const SESSIONS_BEFORE_LONG = 4;
+
+  const settings = { focus: 25, short: 5, long: 15 };
+
+  const state = {
+    mode: 'focus',        // 'focus' | 'short' | 'long'
+    remaining: settings.focus * 60,
+    running: false,
+    session: 1,
+    intervalId: null
+  };
+
+  const el = {
+    time: document.getElementById('timeDisplay'),
+    sessionLabel: document.getElementById('sessionLabel'),
+    dots: document.getElementById('dots'),
+    ring: document.getElementById('ringProgress'),
+    ringWrap: document.getElementById('ringWrap'),
+    startBtn: document.getElementById('startBtn'),
+    startLabel: document.getElementById('startLabel'),
+    playIcon: document.getElementById('playIcon'),
+    pauseIcon: document.getElementById('pauseIcon'),
+    resetBtn: document.getElementById('resetBtn'),
+    skipBtn: document.getElementById('skipBtn'),
+    tabs: {
+      focus: document.getElementById('tabFocus'),
+      short: document.getElementById('tabShort'),
+      long: document.getElementById('tabLong')
+    },
+    body: document.body,
+    settingsToggle: document.getElementById('settingsToggle'),
+    settingsPanel: document.getElementById('settingsPanel'),
+    gradStop1: document.getElementById('gradStop1'),
+    gradStop2: document.getElementById('gradStop2')
+  };
+
+  const modeLabels = { focus: 'Focus', short: 'Pausa breve', long: 'Pausa lunga' };
+
+  function totalSeconds(mode) {
+    return settings[mode] * 60;
+  }
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    return m + ':' + s;
+  }
+
+  function renderDots() {
+    el.dots.innerHTML = '';
+    for (let i = 1; i <= SESSIONS_BEFORE_LONG; i++) {
+      const d = document.createElement('span');
+      if (i < state.session) d.classList.add('done');
+      if (i === state.session && state.mode === 'focus') d.classList.add('active');
+      el.dots.appendChild(d);
+    }
+  }
+
+  function updateRingColors() {
+    if (state.mode === 'focus') {
+      el.gradStop1.setAttribute('stop-color', '#ff8a4c');
+      el.gradStop2.setAttribute('stop-color', '#ff4d6d');
+    } else {
+      el.gradStop1.setAttribute('stop-color', '#38e8c6');
+      el.gradStop2.setAttribute('stop-color', '#4fa8ff');
+    }
+  }
+
+  function render() {
+    el.time.textContent = formatTime(state.remaining);
+    const total = totalSeconds(state.mode);
+    const progressFrac = 1 - (state.remaining / total);
+    el.ring.setAttribute('stroke-dashoffset', String(CIRC * (1 - progressFrac)));
+
+    el.sessionLabel.textContent = state.mode === 'focus'
+      ? 'Sessione ' + state.session + ' di ' + SESSIONS_BEFORE_LONG
+      : modeLabels[state.mode];
+
+    renderDots();
+
+    Object.keys(el.tabs).forEach(function (m) {
+      el.tabs[m].setAttribute('aria-selected', m === state.mode ? 'true' : 'false');
+    });
+
+    el.body.setAttribute('data-mode', state.mode);
+    el.ringWrap.setAttribute('data-running', state.running ? 'true' : 'false');
+    updateRingColors();
+
+    el.playIcon.style.display = state.running ? 'none' : 'block';
+    el.pauseIcon.style.display = state.running ? 'block' : 'none';
+    el.startLabel.textContent = state.running ? 'Pausa' : (state.remaining === total ? 'Avvia' : 'Riprendi');
+
+    document.title = state.running
+      ? formatTime(state.remaining) + ' · ' + modeLabels[state.mode]
+      : 'Focus — la tua stanza dello spirito e del tempo';
+  }
+
+  function beep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = state.mode === 'focus' ? 720 : 520;
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
+      o.connect(g); g.connect(ctx.destination);
+      o.start();
+      o.stop(ctx.currentTime + 0.55);
+      o.onended = function () { ctx.close(); };
+    } catch (e) { /* audio non disponibile, ignora silenziosamente */ }
+  }
+
+  function notify() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') {
+      try {
+        new Notification('Pomodoro', {
+          body: state.mode === 'focus' ? 'Tempo di pausa.' : 'Si torna al lavoro.'
+        });
+      } catch (e) { /* noop */ }
+    }
+  }
+
+  function switchMode(newMode, resetSession) {
+    stopInterval();
+    state.mode = newMode;
+    state.remaining = totalSeconds(newMode);
+    state.running = false;
+    if (resetSession) state.session = 1;
+    render();
+  }
+
+  function advancePhase(completed) {
+    beep();
+    notify();
+    if (state.mode === 'focus' && completed && window.Focus) {
+      window.Focus.record(settings.focus);       // salva il pomodoro sul backend
+    }
+    if (state.mode === 'focus') {
+      if (state.session >= SESSIONS_BEFORE_LONG) {
+        switchMode('long', false);
+      } else {
+        switchMode('short', false);
+      }
+    } else {
+      if (state.mode === 'long') {
+        state.session = 1;
+      } else {
+        state.session += 1;
+      }
+      switchMode('focus', false);
+    }
+  }
+
+  function tick() {
+    state.remaining -= 1;
+    if (state.remaining <= 0) {
+      advancePhase(true);
+      return;
+    }
+    render();
+  }
+
+  function stopInterval() {
+    if (state.intervalId) {
+      clearInterval(state.intervalId);
+      state.intervalId = null;
+    }
+  }
+
+  function toggleRun() {
+    if (state.running) {
+      state.running = false;
+      stopInterval();
+    } else {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().catch(function () {});
+      }
+      state.running = true;
+      state.intervalId = setInterval(tick, 1000);
+    }
+    render();
+  }
+
+  function resetTimer() {
+    state.running = false;
+    stopInterval();
+    state.remaining = totalSeconds(state.mode);
+    render();
+  }
+
+  function skipPhase() {
+    stopInterval();
+    advancePhase(false);
+  }
+
+  el.startBtn.addEventListener('click', toggleRun);
+  el.resetBtn.addEventListener('click', resetTimer);
+  el.skipBtn.addEventListener('click', skipPhase);
+
+  Object.keys(el.tabs).forEach(function (m) {
+    el.tabs[m].addEventListener('click', function () {
+      switchMode(m, m === 'focus');
+    });
+  });
+
+  el.settingsToggle.addEventListener('click', function () {
+    const open = el.settingsPanel.classList.toggle('open');
+    el.settingsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  document.querySelectorAll('.stepper button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const key = btn.getAttribute('data-setting');
+      const delta = parseInt(btn.getAttribute('data-delta'), 10);
+      const min = key === 'focus' ? 5 : 1;
+      const max = key === 'focus' ? 90 : 45;
+      settings[key] = Math.min(max, Math.max(min, settings[key] + delta));
+      document.getElementById(key + 'Val').textContent = settings[key];
+      if (state.mode === key && !state.running) {
+        state.remaining = totalSeconds(state.mode);
+        render();
+      }
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'BUTTON' && e.key === ' ') { /* avoid double trigger on focused button */ }
+    if (e.code === 'Space') { e.preventDefault(); toggleRun(); }
+    else if (e.key === 'r' || e.key === 'R') { resetTimer(); }
+    else if (e.key === 's' || e.key === 'S') { skipPhase(); }
+  });
+
+  // usata dal calendario: avvia subito un focus della durata pianificata
+  window.Timer = {
+    startFocus: function (minutes) {
+      settings.focus = minutes;
+      document.getElementById('focusVal').textContent = minutes;
+      switchMode('focus', false);
+      toggleRun();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  render();
+})();
+</script>
+
+<script>
+/* ===== Focus: integrazione con l'API (dietro oauth2-proxy) ===== */
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  async function api(path, opts) {
+    const r = await fetch('/api' + path, Object.assign({ headers: { 'Content-Type': 'application/json' } }, opts));
+    if (r.status === 401) { location.href = '/oauth2/start?rd=/'; return null; }  // sessione scaduta
+    if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.detail || r.status); }
+    return r.json();
+  }
+
+  function rows(el, items, render, empty) {
+    el.innerHTML = items.length ? items.map(render).join('') : '<li class="muted">' + empty + '</li>';
+  }
+
+  async function loadMe() {
+    me = await api('/me');
+    if (!me) return;
+    $('userChip').innerHTML = '<b>' + esc(me.username) + '</b><span class="role ' + me.role + '">' + me.role + '</span>' +
+      me.classes.map(c => '<span class="klass">' + esc(c) + '</span>').join('') +
+      '<a class="logout" href="/oauth2/sign_out?rd=/">esci</a>';
+    if (me.role === 'tutor' || me.role === 'admin') {
+      $('tutorPanel').hidden = false; $('planPanel').hidden = false;
+      $('calTitle').textContent = 'Calendario degli studenti';
+      await loadClasses(); resetForm(); loadTutor(); loadStudents();
+    } else {
+      me.classes.forEach(c => $('lbSelect').add(new Option(c, c)));
+      if (me.classes.length) $('lbSelect').value = me.classes[0];   // lo studente vede subito la sua classe
+    }
+  }
+
+  async function loadStats() {
+    const s = await api('/me/stats');
+    if (!s) return;
+    $('kpiMin').textContent = s.week_minutes;
+    $('kpiPomo').textContent = s.week_pomodori;
+    $('cacheBadge').textContent = s.cached ? 'dalla cache' : 'dal database';
+    rows($('bySubject'), s.by_subject, x => '<li><span>' + esc(x.subject) + '</span><span>' + x.minutes + ' min · ' + x.pomodori + '</span></li>', 'Nessun pomodoro questa settimana');
+  }
+
+  async function loadLeaderboard() {
+    const k = $('lbSelect').value;
+    const l = await api('/leaderboard' + (k ? '?classe=' + encodeURIComponent(k) : ''));
+    if (!l) return;
+    rows($('leaderboard'), l, (x, i) => '<li><span>' + (i + 1) + '. ' + esc(x.username) + '</span><span>' + x.minutes + ' min</span></li>', 'Ancora vuota');
+  }
+
+  async function loadTutor() {
+    const t = await api('/tutor/overview');
+    if (!t) return;
+    rows($('tutorRows'), t, x => '<li><span>' + esc(x.username) + '</span><span>' + x.minutes + ' min · ' + x.pomodori + ' pomodori</span></li>', 'Nessuno studente attivo');
+  }
+
+  let pendingSchedule = null;   // id della voce di calendario da cui è partito il timer
+
+  async function record(minutes) {
+    const subject = ($('subjectInput').value || 'Generale').trim();
+    const payload = { subject: subject, minutes: minutes };
+    if (pendingSchedule) { payload.schedule_id = pendingSchedule; pendingSchedule = null; }
+    try {
+      await api('/pomodori', { method: 'POST', body: JSON.stringify(payload) });
+      $('savedMsg').textContent = '✓ Pomodoro salvato: ' + subject + ' (' + minutes + ' min)';
+      refresh();
+    } catch (e) { $('savedMsg').textContent = 'Errore nel salvataggio (' + e.message + ')'; }
+  }
+
+  /* ---------- calendario ---------- */
+  let me = null, weekOffset = 0, items = [], editingId = null, students = [];
+  const DAYS = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+  const pad = n => String(n).padStart(2, '0');
+  const isTutor = () => me && (me.role === 'tutor' || me.role === 'admin');
+
+  function weekBounds() {
+    const d = new Date(); d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + weekOffset * 7);   // lunedì della settimana
+    const e = new Date(d); e.setDate(e.getDate() + 7);
+    return [d, e];
+  }
+
+  async function loadCalendar() {
+    const [start, end] = weekBounds();
+    const last = new Date(end); last.setDate(last.getDate() - 1);
+    $('weekLabel').textContent = start.getDate() + '/' + (start.getMonth() + 1) + ' – ' + last.getDate() + '/' + (last.getMonth() + 1);
+    items = await api('/schedule?start=' + encodeURIComponent(start.toISOString()) + '&end=' + encodeURIComponent(end.toISOString())) || [];
+    if (!items.length) { $('calendar').innerHTML = '<p class="muted">Nessun pomodoro pianificato questa settimana</p>'; return; }
+    const byDay = {};
+    items.forEach(it => { const d = new Date(it.start_at); const k = d.toDateString(); (byDay[k] = byDay[k] || []).push(it); });
+    $('calendar').innerHTML = Object.keys(byDay).map(k => {
+      const d = new Date(k);
+      return '<div class="day"><h3>' + DAYS[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth() + 1) + '</h3>' +
+        byDay[k].map(slot).join('') + '</div>';
+    }).join('');
+  }
+
+  function slot(it) {
+    const d = new Date(it.start_at);
+    const who = it.assignee ? 'per ' + esc(it.assignee) : (it.target_class ? 'classe <span class="klass">' + esc(it.target_class) + '</span>' : 'per tutti');
+    const done = it.done_by.length > 0;
+    let right;
+    if (isTutor()) {
+      const stat = it.assignee ? (done ? '<span class="ok">✓ fatto</span>' : '') : (done ? '<span class="ok">✓ ' + it.done_by.length + '</span>' : '');
+      right = stat + ' <button class="mini" data-edit="' + it.id + '">Modifica</button> <button class="mini" data-del="' + it.id + '">Rimuovi</button>';
+    } else {
+      right = done ? '<span class="ok">✓ completato</span>' : '<button class="mini go" data-start="' + it.id + '">Inizia</button>';
+    }
+    const files = it.attachments.map(a => '<span class="file">📎 <a href="/api/attachments/' + a.id + '" target="_blank" rel="noopener">' + esc(a.filename) + '</a>' +
+      (isTutor() ? '<button data-delatt="' + a.id + '" title="Rimuovi">✕</button>' : '') + '</span>').join('');
+    const upload = isTutor() ? '<label class="upload">+ appunti<input type="file" data-upload="' + it.id + '" accept=".pdf,.png,.jpg,.jpeg,.txt,.md"></label>' : '';
+    const filesRow = (files || upload) ? '<div class="files-row"><div class="files">' + files + upload + '</div></div>' : '';
+    const klass = (!isTutor() && it.target_class) ? ' <span class="klass">' + esc(it.target_class) + '</span>' : '';
+    return '<div class="slot' + (done && !isTutor() ? ' done' : '') + '"><span class="t">' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '</span>' +
+      '<div class="info">' + esc(it.subject) + ' · ' + it.minutes + ' min' + klass + '<small>' + (isTutor() ? who + ' · ' : '') + esc(it.note || '') + '</small></div>' + right + filesRow + '</div>';
+  }
+
+  $('calendar').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const find = id => items.find(x => x.id === Number(id));
+    if (b.dataset.start) {                               // studente: parte il timer con la durata pianificata
+      const it = find(b.dataset.start);
+      $('subjectInput').value = it.subject;
+      pendingSchedule = it.id;
+      window.Timer.startFocus(it.minutes);
+    } else if (b.dataset.edit) {
+      startEdit(find(b.dataset.edit));
+    } else if (b.dataset.delatt && confirm('Rimuovere questo allegato?')) {
+      await fetch('/api/attachments/' + b.dataset.delatt, { method: 'DELETE' });
+      loadCalendar();
+    } else if (b.dataset.del && confirm('Rimuovere questo pomodoro dal calendario?')) {
+      await fetch('/api/schedule/' + b.dataset.del, { method: 'DELETE' });
+      loadCalendar();
+    }
+  });
+  $('calendar').addEventListener('change', async e => {
+    const inp = e.target; if (!inp.dataset || !inp.dataset.upload || !inp.files.length) return;
+    const fd = new FormData(); fd.append('file', inp.files[0]);
+    const r = await fetch('/api/schedule/' + inp.dataset.upload + '/attachments', { method: 'POST', body: fd });
+    if (!r.ok) { const j = await r.json().catch(() => ({})); alert('Caricamento non riuscito: ' + (j.detail || r.status)); }
+    loadCalendar();
+  });
+  $('lbSelect').addEventListener('change', loadLeaderboard);
+  $('prevWeek').addEventListener('click', () => { weekOffset--; loadCalendar(); });
+  $('nextWeek').addEventListener('click', () => { weekOffset++; loadCalendar(); });
+
+  /* ---------- pianificatore (tutor) ---------- */
+  let classes = [];
+  const unrestricted = () => me && (me.role === 'admin' || !me.classes.length);
+  async function loadStudents() {
+    students = await api('/students') || [];
+    $('studentList').innerHTML = students.length
+      ? students.map(s => '<label><input type="checkbox" value="' + esc(s.username) + '"> ' + esc(s.username) +
+          (s.classes.length ? ' <span class="klass">' + esc(s.classes.join(', ')) + '</span>' : '') + '</label>').join('')
+      : '<span class="muted">Nessuno studente delle tue classi ha ancora fatto accesso</span>';
+  }
+  async function loadClasses() {
+    classes = await api('/classes') || [];
+    $('pClass').innerHTML = classes.length ? classes.map(c => '<option>' + esc(c) + '</option>').join('') : '<option value="">nessuna classe</option>';
+    const lb = $('lbSelect');
+    classes.forEach(c => { if (![...lb.options].some(o => o.value === c)) lb.add(new Option(c, c)); });
+  }
+  const target = () => document.querySelector('input[name=target]:checked').value;
+  function showTarget() {
+    $('studentList').hidden = target() !== 'students';
+    $('classBox').hidden = target() !== 'class';
+  }
+  document.querySelectorAll('input[name=target]').forEach(r => r.addEventListener('change', showTarget));
+  const checked = () => [...$('studentList').querySelectorAll('input:checked')].map(c => c.value);
+
+  function resetForm() {
+    editingId = null;
+    $('planForm').reset();
+    $('pDate').value = new Date().toISOString().slice(0, 10);
+    $('targetAllLabel').hidden = !unrestricted();
+    document.querySelector('input[name=target][value=' + (classes.length ? 'class' : 'students') + ']').checked = true;
+    showTarget();
+    $('planTitle').textContent = 'Pianifica un pomodoro';
+    $('planSubmit').textContent = 'Aggiungi al calendario';
+    $('planCancel').hidden = true;
+  }
+
+  function startEdit(it) {
+    const d = new Date(it.start_at);
+    editingId = it.id;
+    $('pSubject').value = it.subject;
+    $('pDate').value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    $('pTime').value = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    $('pMinutes').value = it.minutes;
+    $('pNote').value = it.note || '';
+    const t = it.assignee ? 'students' : (it.target_class ? 'class' : 'all');
+    document.querySelector('input[name=target][value=' + t + ']').checked = true;
+    if (it.target_class) $('pClass').value = it.target_class;
+    $('studentList').querySelectorAll('input').forEach(c => { c.checked = c.value === it.assignee; });
+    showTarget();
+    $('planTitle').textContent = 'Modifica pomodoro';
+    $('planSubmit').textContent = 'Salva modifiche';
+    $('planCancel').hidden = false;
+    $('planMsg').textContent = '';
+    $('planPanel').scrollIntoView({ behavior: 'smooth' });
+  }
+  $('planCancel').addEventListener('click', resetForm);
+
+  $('planForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('planMsg'); msg.className = 'msg';
+    const sel = target() === 'students' ? checked() : [];
+    if (target() === 'students' && !sel.length) { msg.className = 'msg err'; msg.textContent = 'Scegli almeno uno studente'; return; }
+    if (target() === 'class' && !$('pClass').value) { msg.className = 'msg err'; msg.textContent = 'Nessuna classe disponibile'; return; }
+    if (editingId && sel.length > 1) { msg.className = 'msg err'; msg.textContent = 'In modifica scegli "Tutti" oppure un solo studente'; return; }
+    const body = {
+      subject: $('pSubject').value.trim(),
+      start_at: new Date($('pDate').value + 'T' + $('pTime').value).toISOString(),
+      minutes: Number($('pMinutes').value),
+      note: $('pNote').value.trim()
+    };
+    try {
+      if (editingId) {
+        body.assignee = sel[0] || null;
+        body.target_class = target() === 'class' ? $('pClass').value : null;
+        await api('/schedule/' + editingId, { method: 'PUT', body: JSON.stringify(body) });
+        msg.textContent = '✓ Modifica salvata';
+      } else {
+        body.target = target();
+        body.assignees = sel;
+        body.target_class = target() === 'class' ? $('pClass').value : null;
+        const r = await api('/schedule', { method: 'POST', body: JSON.stringify(body) });
+        const dest = { all: 'tutti gli studenti', class: 'la classe ' + body.target_class, students: sel.join(', ') }[body.target];
+        msg.textContent = '✓ Aggiunto per ' + dest + (r.length > 1 ? ' (' + r.length + ' voci)' : '');
+      }
+      resetForm(); loadCalendar();
+    } catch (err) { msg.className = 'msg err'; msg.textContent = 'Errore (' + err.message + ')'; }
+  });
+
+  function refresh() {
+    loadStats(); loadLeaderboard(); loadCalendar();
+    if (!$('tutorPanel').hidden) loadTutor();
+  }
+
+  window.Focus = { record: record };
+  $('testBtn').addEventListener('click', function () { record(1); });
+  loadMe().then(refresh).catch(e => { $('userChip').textContent = 'API non raggiungibile (' + e.message + ')'; });
+})();
+</script>
+
+</body>
+</html>
