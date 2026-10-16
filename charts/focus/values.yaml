@@ -22,7 +22,7 @@ oauth2Proxy:
 postgres:
   image: postgres:17-alpine
   secretName: focus-db                # POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
-  storageClass: local-path            # passerà a longhorn-r2 nella fase Longhorn
+  storageClass: standard              # local-path di kind; passerà a longhorn-r2 nella fase Longhorn
   size: 1Gi
 
 attachments:                          # appunti caricati dai tutor

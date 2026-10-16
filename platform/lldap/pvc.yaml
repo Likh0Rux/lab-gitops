@@ -5,7 +5,7 @@ metadata:
   namespace: identity
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: local-path       # per ora local-path: Longhorn a 2 nodi arriva nella fase Longhorn
+  storageClassName: standard         # local-path di kind (la classe si chiama "standard"); Longhorn nella fase Longhorn
   resources:
     requests:
       storage: 1Gi                   # SQLite di LLDAP: bastano pochi MB
