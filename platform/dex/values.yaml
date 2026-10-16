@@ -19,7 +19,7 @@ config:
       config:
         host: lldap.identity.svc.cluster.local:3890
         insecureNoSSL: true                      # LDAP in chiaro dentro il cluster (finding)
-        bindDN: uid=dex-bind,ou=people,dc=lab,dc=local
+        bindDN: uid=dex-bind1,ou=people,dc=lab,dc=local
         bindPW: $LDAP_BIND_PW                    # espansa da variabile d'ambiente
         usernamePrompt: Username
         userSearch:
