@@ -52,8 +52,10 @@ config:
 ingress:
   enabled: true
   className: traefik
-  annotations:
-    cert-manager.io/cluster-issuer: lab-ca
+  annotations:    
+    cert-manager.io/cluster-issuer: lab-intermediate
+    cert-manager.io/duration: 2160h       # 90 giorni
+    cert-manager.io/renew-before: 720h    # rinnovo 30 giorni prima
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
   hosts:
