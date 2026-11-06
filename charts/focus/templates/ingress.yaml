@@ -5,7 +5,9 @@ metadata:
   name: focus
   labels: {{- include "focus.labels" . | nindent 4 }}
   annotations:
-    cert-manager.io/cluster-issuer: lab-ca
+    cert-manager.io/cluster-issuer: lab-intermediate
+    cert-manager.io/duration: 2160h       # 90 giorni
+    cert-manager.io/renew-before: 720h    # rinnovo 30 giorni prima
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
@@ -23,3 +25,5 @@ spec:
               service:
                 name: focus-oauth2-proxy
                 port: { name: http }
+
+ 

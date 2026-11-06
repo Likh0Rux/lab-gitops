@@ -11,11 +11,11 @@ spec:
   dnsNames:
     - argocd.local
   duration: 2160h                  # 90 giorni
-  renewBefore: 360h                # rinnovo automatico 15 giorni prima
+  renewBefore: 720h
   privateKey:
     algorithm: ECDSA
     size: 256
   issuerRef:
-    name: lab-ca
+    name: lab-intermediate
     kind: ClusterIssuer
     group: cert-manager.io
