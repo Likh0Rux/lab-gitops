@@ -1,0 +1,19 @@
+data:
+  url: https://argocd.local
+  oidc.config: |
+    name: Dex
+    issuer: https://dex.local
+    clientID: argocd
+    clientSecret: $oidc.dex.clientSecret
+    requestedScopes: ["openid", "profile", "email", "groups"]
+    rootCA: |
+      -----BEGIN CERTIFICATE-----
+      MIIBdTCCARygAwIBAgIURmb4vnZYwlL4wL/TslMPwVumkj4wCgYIKoZIzj0EAwIw
+      GTEXMBUGA1UEAxMOQWNhZGVteSBMYWIgQ0EwHhcNMjYxMDA5MTM0OTI2WhcNMzYx
+      MDA2MTM0OTI2WjAZMRcwFQYDVQQDEw5BY2FkZW15IExhYiBDQTBZMBMGByqGSM49
+      AgEGCCqGSM49AwEHA0IABEQQuGr+lRa1hrZ4JfEbyjDRRSI3v14yL0JK0kDee6jv
+      eHYg34Lp7PfBtzNvEVC93kmtGlJ6YEDgkurEiouroRijQjBAMA4GA1UdDwEB/wQE
+      AwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBRM+qBkgFK0zmNoJEeASGqM
+      89YOlTAKBggqhkjOPQQDAgNHADBEAiB7/rozeOWuW/E0uq6P1Dd1/M00jyYIZ6cJ
+      5bjVaC4q8gIgKOTFL7i/iqsKr2yn5VhI+6DXa9lyrGYKqU0riMIeiAg=
+      -----END CERTIFICATE-----

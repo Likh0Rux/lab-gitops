@@ -1,0 +1,12 @@
+defaultSettings:
+  taintToleration: "node-role.kubernetes.io/control-plane:NoSchedule"  # componenti creati da Longhorn (instance-manager, engine-image)
+longhornManager:
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+longhornDriver:
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
